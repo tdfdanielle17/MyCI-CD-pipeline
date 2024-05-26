@@ -1,3 +1,4 @@
+
 resource "aws_iam_user" "my_users" {
 for_each = local.users
   name     = each.key
@@ -30,4 +31,3 @@ resource "aws_iam_group_policy" "group_inline_policy" {
   policy = each.value
 
 }
-
