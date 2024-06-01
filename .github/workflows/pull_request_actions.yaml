@@ -32,7 +32,7 @@ jobs:
       - name: Run kics Scan
         uses: checkmarx/kics-github-action@v2.0.0
         with:
-          path: ./infrastructure/iam_group
+          path: infrastructure/iam_group
           token: ${{ secrets.GITHUB_TOKEN }}
           output_path: myResults/
           ignore_on_exit: results
