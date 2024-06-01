@@ -1,0 +1,61 @@
+name: terraform plan and apply
+on:
+  push:
+    branches:
+      - main 
+      #- test - this is to show that multiple branches can be targeted for a specific event trigger.
+      #- dev
+      #- sandbox
+  pull_request:
+    branches:
+      - main 
+      #- test
+      #- dev
+      #- sandbox 
+   
+permissions:
+  contents: write
+  pull-requests: read
+  issues: write
+concurrency: singleworkflow # this will ensure only a single workflow will run at the time.
+
+jobs:
+  kics:
+    name: Run KICS Code Analysis
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: ckeckmarx/kics-github-action@v2.0.0
+        with:
+         ref: ${{github.event.pull_request.head.ref}}
+      
+      - name: Run kics Scan
+        uses: checkmarx/kics-github-action@v2.0.0
+        with:
+          path: ./infrastructure/iam_group
+          token: ${{ secrets.GITHUB_TOKEN }}
+          output_path: myResults/
+          ignore_on_exit: results
+          enable_comments: true
+
+
+  run_plan_in_prod_environment: # the name you give. 
+    name: terraform init, validate, plan
+    uses: ./.github/workflows/reusable_plan_actions.yaml
+    with:
+      TERRAFORM_VERSION: 1.5.7
+      TERRAGRUNT_VERSION: 0.58.0
+      TERRAFORM_WORKING_DIR: './applied/prod/iam_group'
+      AWS_REGION: 'us-east-1'
+    secrets: inherit
+  
+  run_apply_in_prod_environment:
+    name: terraform init, apply
+    uses: ./.github/workflows/reusable_apply_actions.yaml
+    with:
+      TERRAFORM_VERSION: 1.5.7
+      TERRAGRUNT_VERSION: 0.58.0
+      TERRAFORM_WORKING_DIR: './applied/prod/iam_group'
+      AWS_REGION: 'us-east-1'
+    secrets: inherit
+          
